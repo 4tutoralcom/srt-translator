@@ -4,6 +4,7 @@ def get_key_path(dir_path, key_location='google_key'):
     key_directory=dir_path+'/'+key_location
     key_file = [i for i in os.listdir(key_directory) if '__init__.py' not in i][0]
     key_path = key_directory+'/'+key_file
+    print(key_path) 
     return key_path
 
 def AggregateSentences(in_file):
