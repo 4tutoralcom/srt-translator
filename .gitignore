@@ -2,3 +2,9 @@ dev
 venv
 __pycache__
 google_key/*.json
+tmp_outputs/
+outputs/
+tmp_inputs/
+inputs/
+!*__init__
+!*__init__.py

@@ -1,7 +1,10 @@
+from asyncio.windows_events import NULL
 import os
 import re
+
 from translator_options import *
-from code.translate import Translate
+if(dry_run):
+    from code.translate import Translate
 
 # Specify input and output Folder
 input_folder = "tmp_inputs"
@@ -14,7 +17,8 @@ final_output_folder = "outputs"
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Clean out ALL Folder
-folders=[output_folder,input_folder,final_output_folder]
+#folders=[output_folder,input_folder,final_output_folder]
+folders=[input_folder,final_output_folder]
 for folder in folders:
     files_in_folder = [i for i in os.listdir(dir_path + "/" + folder) if '__init__.py' not in i]
     for each_file in files_in_folder:
@@ -60,16 +64,16 @@ for each_file in file_list:
 # Translate all files in file_list
 file_list = [i for i in os.listdir(
     dir_path + "/" + input_folder) if '__init__.py' not in i]
-
-for each_file in file_list:
-    file_to_translate=dir_path + "/" + input_folder + "/" + each_file
-    for each_language in output_languages:
-        output_filename=each_file[:each_file.find('.srt')]+'-'+each_language+'.srt'
-        file_to_output=dir_path + "/" + output_folder + "/" + output_filename
-        results=Translate(input_filepath=file_to_translate,
-        output_filepath=file_to_output, in_language=input_language,
-        out_language=each_language, dir_path=dir_path)
-        # print (results)
+if(dry_run):
+    for each_file in file_list:
+        file_to_translate=dir_path + "/" + input_folder + "/" + each_file
+        for each_language in output_languages:
+            output_filename=each_file[:each_file.find('.srt')]+'-'+each_language+'.srt'
+            file_to_output=dir_path + "/" + output_folder + "/" + output_filename
+            results=Translate(input_filepath=file_to_translate,
+            output_filepath=file_to_output, in_language=input_language,
+            out_language=each_language, dir_path=dir_path)
+            # print (results)
 
 
 # merge parts back together
@@ -77,16 +81,24 @@ all_output_files = [i for i in os.listdir(
     dir_path + "/" + output_folder) if '__init__.py' not in i]
 
 for each_file in all_output_files:
-    split_file = dir_path + "/" + input_folder + "/"+ each_file
+    split_file = dir_path + "\\" + output_folder + "\\" + each_file
     final_file_name=re.sub("_part_[0-9]+_","",each_file)
     final_file = dir_path + "\\" + final_output_folder + "\\" + final_file_name
     print(split_file)
     print(final_file)
-    fa = open(final_file, "a")
-    with open(split_file, 'r') as data_file:
+    fa = open(final_file, "ab")
+    with open(split_file, 'rb') as data_file:
         for line in data_file:
-            fa.write(line)
+            s = line.replace(b"\xef\xbb\xbf", b"")
+            fa.write(s)
     
     fa.close()
 
-
+#Final Cleanup
+folders=[start_input_folder]
+for folder in folders:
+    files_in_folder = [i for i in os.listdir(dir_path + "/" + folder) if '__init__.py' not in i]
+    for each_file in files_in_folder:
+        file = dir_path + "\\" + folder + "\\" + each_file
+        print(file)
+        os.remove(file)
